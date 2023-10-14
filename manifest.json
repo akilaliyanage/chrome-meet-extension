@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Hello Extensions from the world",
+  "description": "Base Level Extension",
+  "version": "1.0",
+  "action": {
+    "default_popup": "hello.html",
+    "default_icon": "assets/icon.png"
+  },
+  "content-scripts": [
+    {
+      "matches": ["https://developer.chrome.com/docs/extensions/*", "https://developer.chrome.com/docs/webstore/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
