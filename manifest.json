@@ -7,7 +7,7 @@
     "default_icon": "assets/icon.png",
     "default_popup": "main.html"
   },
-  "permissions": ["storage", "scripting"],
+  "permissions": ["storage", "scripting", "activeTab", "tabs"],
   "background": {
     "service_worker": "scripts/background.js"
   },

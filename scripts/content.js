@@ -4,7 +4,6 @@
 /* eslint-disable no-undef */
 
 const meetingName = window.location.href.split("/").pop();
-// const configForm = document.getElementById("configForm");
 
 // `document.querySelector` may return null if the selector doesn't match anything.
 if (meetingName) {
