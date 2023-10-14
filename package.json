@@ -1,7 +1,5 @@
 {
-  "dependencies": {
-    "chrome-types": "^0.1.231"
-  },
+
   "devDependencies": {
     "eslint": "^8.51.0",
     "eslint-config-airbnb": "^19.0.4",
