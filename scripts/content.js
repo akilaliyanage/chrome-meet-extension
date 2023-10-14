@@ -12,7 +12,14 @@ if (meetingName) {
   // eslint-disable-next-line no-console
   window.addEventListener("beforeunload", async () => {
     const endTime = new Date(); // get the end time of the meeting
-    const configurations = await chrome.storage.sync.get(["workspaceId", "projectId", "PAT"]);
+    const configurations = await chrome.storage.sync.get([
+      "workspaceId",
+      "projectId",
+      "PAT",
+      "jiraEmail",
+      "jiraPAT",
+      "jiraTaskId",
+    ]);
 
     // send the data to the background script
     chrome.runtime.sendMessage({

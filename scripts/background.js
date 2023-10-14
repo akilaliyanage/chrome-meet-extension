@@ -2,9 +2,12 @@
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
-  const requestUrl = `https://api.clockify.me/api/v1/workspaces/${request.data.configurations.workspaceId}/time-entries/`;
+  const requestUrlClokify = `https://api.clockify.me/api/v1/workspaces/${request.data.configurations.workspaceId}/time-entries/`;
+  const requestUrlJira = `https://surgeglobal.atlassian.net/rest/api/3/issue/${request.data.configurations.jiraTaskId}/worklog`;
 
-  const requestBody = {
+  const jiraTimeLogInSeconds = (request.data.endTime - request.data.startTime) / 1000;
+
+  const requestBodyClokify = {
     start: request.data.startTime,
     end: request.data.endTime,
     description: request.data.meetingName,
@@ -12,16 +15,55 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     billable: true,
   };
 
-  const requestHeaders = {
+  const requestBodyJira = {
+    comment: {
+      content: [
+        {
+          content: [
+            {
+              text: request.data.meetingName,
+              type: "text",
+            },
+          ],
+          type: "paragraph",
+        },
+      ],
+      type: "doc",
+      version: 1,
+    },
+    started: request.data.startTime,
+    timeSpentSeconds: jiraTimeLogInSeconds,
+  };
+
+  const requestHeadersClokify = {
     "X-Api-Key": request.data.configurations.PAT,
     "Content-Type": "application/json",
   };
 
-  const res = await fetch(requestUrl, {
+  const requestHeadersJira = {
+    "Content-Type": "application/json",
+    Authorization: `Basic ${btoa(request.data.configurations.jiraEmail + ":" + request.data.configurations.jiraPAT)}`,
+  };
+
+  console.log(requestHeadersJira, requestBodyJira);
+
+  const responseFromClokify = await fetch(requestUrlClokify, {
     method: "POST",
-    body: JSON.stringify(requestBody),
-    headers: requestHeaders,
+    body: JSON.stringify(requestBodyClokify),
+    headers: requestHeadersClokify,
   });
 
-  sendResponse(res.status);
+  const responseFromJira = await fetch(requestUrlJira, {
+    method: "POST",
+    body: JSON.stringify(requestBodyJira),
+    headers: requestHeadersJira,
+  });
+
+  Promise.allSettled([responseFromClokify, responseFromJira]).then((results) => {
+    if (results[0].status === "fulfilled" && results[1].status === "fulfilled") {
+      sendResponse({ status: 201 });
+    } else {
+      sendResponse({ status: 500 });
+    }
+  });
 });
