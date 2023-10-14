@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src *; style-src 'self' https://* 'unsafe-inline'; script-src 'self' https://* 'unsafe-inline' 'unsafe-eval'"
+    />
+
+    <title>Hello, world!</title>
+  </head>
+  <body style="width: max-content; padding: 10px">
+    <div class="container">
+      <!-- Content here -->
+      <h4>Welcome to google meet time recorder</h4>
+      <h6>Please enter the below details to get started!!</h6>
+      <form>
+        <div class="form-group" id="configForm">
+          <label for="clokifyWorkspaceIdInput">Clokify workspace ID</label>
+          <input
+            type="text"
+            class="form-control"
+            id="clokifyWorkspaceIdInput"
+            aria-describedby="clokifyWorkspaceIdInputHelp"
+            placeholder="Workspace ID"
+          />
+          <small id="clokifyWorkspaceIdInputHelp" class="form-text text-muted"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="clokifyProjectIdInput">Project ID</label>
+          <input type="text" class="form-control" id="clokifyProjectIdInput" placeholder="Project ID" />
+        </div>
+
+        <div class="form-group">
+          <label for="clokifyPATInput">Clokify Access token</label>
+          <input type="password" class="form-control" id="clokifyPATInput" placeholder="Access token"/>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="configFormButton">Submit</button>
+      </form>
+    </div>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="scripts/jquery-3.2.1.slim.min.js"></script>
+    <script src="scripts/popper.min.js"></script>
+    <script src="scripts/bootstrap.min.js"></script>
+    <script src="scripts/other.js"></script>
+  </body>
+</html>
