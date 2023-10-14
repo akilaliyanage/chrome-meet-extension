@@ -1,13 +1,19 @@
 {
   "manifest_version": 3,
-  "name": "Hello Extensions from the world",
-  "description": "Base Level Extension",
+  "name": "Google meet time-log Extension - DEVELOPMENT BUILD",
+  "description": "THIS EXTENSION IS FOR BETA TESTING",
   "version": "1.0",
   "action": {
-    "default_icon": "assets/icon.png",
+    "default_icon": "assets/icons8-google-meet-128.png",
     "default_popup": "main.html"
   },
-  "permissions": ["storage", "scripting"],
+  "icons": {
+    "16": "assets/icons8-google-meet-16.png",
+    "32": "assets/icons8-google-meet-32.png",
+    "48": "assets/icons8-google-meet-48.png",
+    "128": "assets/icons8-google-meet-128.png"
+  },
+  "permissions": ["storage", "scripting", "activeTab", "tabs"],
   "background": {
     "service_worker": "scripts/background.js"
   },

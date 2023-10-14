@@ -3,8 +3,7 @@
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
 
-const meetingName = window.location.href.split("/").pop();
-// const configForm = document.getElementById("configForm");
+const meetingName = window.location.href.split("/").pop().split("?")[0];
 
 // `document.querySelector` may return null if the selector doesn't match anything.
 if (meetingName) {
