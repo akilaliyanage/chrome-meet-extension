@@ -19,7 +19,7 @@
 
     <title>Hello, world!</title>
   </head>
-  <body style="width: max-content; padding: 10px">
+  <body style="width: max-content; padding: 10px; height: max-content;">
     <div class="container">
       <!-- Content here -->
       <h4>Welcome to google meet time-log extension</h4>
@@ -44,7 +44,24 @@
 
         <div class="form-group">
           <label for="clokifyPATInput">Clokify Access token</label>
-          <input type="password" class="form-control" id="clokifyPATInput" placeholder="Access token"/>
+          <input type="password" class="form-control" id="clokifyPATInput" placeholder="Access token" />
+        </div>
+
+        <hr />
+
+        <div class="form-group">
+          <label for="jiraEmailInput">Jira registered email address</label>
+          <input type="text" class="form-control" id="jiraEmailInput" placeholder="Jira email address" />
+        </div>
+
+        <div class="form-group">
+          <label for="jiraPATInput">Jira Access token</label>
+          <input type="password" class="form-control" id="jiraPATInput" placeholder="Jira access token" />
+        </div>
+
+        <div class="form-group">
+          <label for="jiraTaskIdInput">Jira task ID</label>
+          <input type="text" class="form-control" id="jiraTaskIdInput" placeholder="Jira task ID" />
         </div>
 
         <button type="button" class="btn btn-primary" id="configFormButton">Submit</button>
