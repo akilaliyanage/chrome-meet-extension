@@ -4,6 +4,7 @@
 /* eslint-disable no-unused-vars */
 
 const configFormButton = document.getElementById("configFormButton");
+const configForm = document.getElementById("configForm");
 const workspaceIdInput = document.getElementById("clokifyWorkspaceIdInput");
 const projectIdInput = document.getElementById("clokifyProjectIdInput");
 const PATInput = document.getElementById("clokifyPATInput");
@@ -21,3 +22,11 @@ configFormButton.addEventListener("click", (e) => {
     alert("Configuration saved!");
   });
 });
+
+window.onload = () => {
+  chrome.storage.sync.get(["workspaceId", "projectId", "PAT"], (configurations) => {
+    workspaceIdInput.value = configurations.workspaceId;
+    projectIdInput.value = configurations.projectId;
+    PATInput.value = configurations.PAT;
+  });
+};
