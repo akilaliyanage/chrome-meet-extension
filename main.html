@@ -17,44 +17,172 @@
       content="default-src *; style-src 'self' https://* 'unsafe-inline'; script-src 'self' https://* 'unsafe-inline' 'unsafe-eval'"
     />
 
-    <title>Hello, world!</title>
+    <title>Google Meet Time Logger</title>
+    <style>
+      .issue-search-container {
+        position: relative;
+      }
+      .issue-search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+      }
+      .issue-search-results.show {
+        display: block;
+      }
+      .issue-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+      }
+      .issue-item:hover {
+        background-color: #f8f9fa;
+      }
+      .issue-item:last-child {
+        border-bottom: none;
+      }
+      .issue-key {
+        font-weight: bold;
+        color: #0052CC;
+      }
+      .issue-summary {
+        color: #172B4D;
+        font-size: 0.9em;
+      }
+      .meeting-history {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .meeting-item {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        background-color: #f8f9fa;
+      }
+      .meeting-item:hover {
+        background-color: #e9ecef;
+      }
+      .meeting-time {
+        font-size: 0.9em;
+        color: #6c757d;
+      }
+      .meeting-duration {
+        font-weight: bold;
+        color: #28a745;
+      }
+      .meeting-name {
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+      .log-time-btn {
+        margin-top: 5px;
+      }
+      .nav-tabs {
+        margin-bottom: 15px;
+      }
+      .current-meeting {
+        background-color: #e3f2fd;
+        border-color: #90caf9;
+      }
+      .current-meeting:hover {
+        background-color: #bbdefb;
+      }
+      .current-meeting .meeting-duration {
+        color: #1976d2;
+      }
+    </style>
   </head>
   <body style="width: max-content; padding: 10px">
     <div class="container">
-      <!-- Content here -->
-      <h4>Welcome to google meet time-log extension</h4>
-      <h6>Please enter the below details to get started!!</h6>
-      <form>
-        <div class="form-group" id="configForm">
-          <label for="clokifyWorkspaceIdInput">Clokify workspace ID</label>
-          <input
-            type="text"
-            class="form-control"
-            id="clokifyWorkspaceIdInput"
-            aria-describedby="clokifyWorkspaceIdInputHelp"
-            placeholder="Workspace ID"
-          />
-          <small id="clokifyWorkspaceIdInputHelp" class="form-text text-muted"></small>
+      <h4>Google Meet Time Logger</h4>
+      
+      <!-- Navigation Tabs -->
+      <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" id="meetings-tab" data-toggle="tab" href="#meetings" role="tab">Meetings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab">Settings</a>
+        </li>
+      </ul>
+
+      <!-- Tab Content -->
+      <div class="tab-content" id="mainTabContent">
+        <!-- Meetings Tab -->
+        <div class="tab-pane fade show active" id="meetings" role="tabpanel">
+          <div class="meeting-history" id="meetingHistory">
+            <!-- Meeting items will be added here dynamically -->
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="clokifyProjectIdInput">Project ID</label>
-          <input type="text" class="form-control" id="clokifyProjectIdInput" placeholder="Project ID" />
-        </div>
+        <!-- Settings Tab -->
+        <div class="tab-pane fade" id="settings" role="tabpanel">
+          <!-- Jira Configuration Form -->
+          <form id="configForm">
+            <div class="form-group">
+              <label for="jiraDomain">Jira Domain</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="jiraDomain" placeholder="your-domain">
+                <div class="input-group-append">
+                  <span class="input-group-text">.atlassian.net</span>
+                </div>
+              </div>
+              <small class="form-text text-muted">Enter your Jira domain (e.g., if your Jira URL is company.atlassian.net, enter 'company')</small>
+            </div>
 
-        <div class="form-group">
-          <label for="clokifyPATInput">Clokify Access token</label>
-          <input type="password" class="form-control" id="clokifyPATInput" placeholder="Access token"/>
-        </div>
+            <div class="form-group">
+              <label for="jiraEmail">Jira Email</label>
+              <input type="email" class="form-control" id="jiraEmail" placeholder="your.email@company.com">
+            </div>
 
-        <button type="button" class="btn btn-primary" id="configFormButton">Submit</button>
-      </form>
+            <div class="form-group">
+              <label for="jiraApiToken">Jira API Token</label>
+              <input type="password" class="form-control" id="jiraApiToken" placeholder="API Token">
+              <small class="form-text text-muted">
+                <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank">Get your API token here</a>
+              </small>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="testConnectionBtn">Test Connection</button>
+            <button type="button" class="btn btn-success" id="saveConfigBtn" style="display: none;">Save Configuration</button>
+          </form>
+
+          <!-- Issue Selection Form -->
+          <form id="issueForm" style="display: none;">
+            <div class="form-group">
+              <label for="jiraProject">Project</label>
+              <select class="form-control" id="jiraProject">
+                <option value="">Select a project</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="jiraIssueSearch">Default Issue</label>
+              <div class="issue-search-container">
+                <input type="text" class="form-control" id="jiraIssueSearch" placeholder="Search by issue key or summary...">
+                <div class="issue-search-results" id="issueSearchResults"></div>
+              </div>
+              <small class="form-text text-muted">Select a default issue for logging meeting time</small>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
+
     <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="scripts/jquery-3.2.1.slim.min.js"></script>
     <script src="scripts/popper.min.js"></script>
     <script src="scripts/bootstrap.min.js"></script>
-    <script src="scripts/other.js"></script>
+    <script src="scripts/jira-auth.js"></script>
+    <script src="scripts/meeting-tracker.js"></script>
   </body>
 </html>
