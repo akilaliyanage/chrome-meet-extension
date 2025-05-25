@@ -22,6 +22,26 @@
       .issue-search-container {
         position: relative;
       }
+      .container {
+        max-width: 420px;
+        margin: 0 auto;
+        padding: 16px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      }
+      body {
+        min-width: 320px;
+        background: #f7f8fa;
+      }
+      .form-control, .btn, .input-group, .input-group-append, .input-group-text {
+        width: 100%;
+        box-sizing: border-box;
+      }
+      input[type="text"], input[type="password"], input[type="email"] {
+        overflow-x: auto;
+        white-space: nowrap;
+      }
       .issue-search-results {
         position: absolute;
         top: 100%;
@@ -174,6 +194,42 @@
               <small class="form-text text-muted">Select a default issue for logging meeting time</small>
             </div>
           </form>
+
+          <!-- Clockify Configuration Form -->
+          <form id="clockifyForm" class="mt-4">
+            <h5>Clockify Settings</h5>
+            <div class="form-group">
+              <label for="clockifyApiKey">Clockify API Key</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="clockifyApiKey" placeholder="Your Clockify API key">
+                <div class="input-group-append">
+                  <button type="button" class="btn btn-outline-secondary" id="loadClockifyWorkspacesBtn">Load Workspaces</button>
+                </div>
+              </div>
+              <small class="form-text text-muted">
+                Get your API key from your <a href="https://app.clockify.me/user/settings" target="_blank">Clockify Profile Settings</a>
+              </small>
+            </div>
+            <div class="form-group">
+              <label for="clockifyWorkspaceId">Workspace</label>
+              <select class="form-control" id="clockifyWorkspaceId">
+                <option value="">Select a workspace</option>
+              </select>
+              <small class="form-text text-muted">
+                Choose your Clockify workspace from the list above.
+              </small>
+            </div>
+            <div class="form-group">
+              <label for="clockifyProjectId">Project</label>
+              <select class="form-control" id="clockifyProjectId">
+                <option value="">Select a project</option>
+              </select>
+              <small class="form-text text-muted">
+                Choose a project for logging time entries.
+              </small>
+            </div>
+            <button type="button" class="btn btn-success" id="saveClockifyBtn">Save Clockify Settings</button>
+          </form>
         </div>
       </div>
     </div>
@@ -184,5 +240,11 @@
     <script src="scripts/bootstrap.min.js"></script>
     <script src="scripts/jira-auth.js"></script>
     <script src="scripts/meeting-tracker.js"></script>
+    <footer class="footer mt-4 text-center" style="font-size: 13px; color: #888;">
+      Made with <span style="color: #e25555;">&#10084;&#65039;</span> by
+      <a href="https://github.com/akilaliyanage" target="_blank" style="color: #0052cc; text-decoration: none;">
+        akilaliyanage
+      </a>
+    </footer>
   </body>
 </html>
