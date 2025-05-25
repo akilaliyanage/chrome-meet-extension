@@ -196,12 +196,15 @@ const observer = new MutationObserver((mutations) => {
   }, 500);
 });
 
-// Start observing with more aggressive settings
-observer.observe(document.body, {
-  childList: true,
-  subtree: true,
-  attributes: true,
-  attributeFilter: ['aria-label', 'role', 'data-allocation-index', 'data-meeting-title', 'data-participant-id']
+// Wait for document to be ready before starting observation
+document.addEventListener('DOMContentLoaded', () => {
+  // Start observing with more aggressive settings
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['aria-label', 'role', 'data-allocation-index', 'data-meeting-title', 'data-participant-id']
+  });
 });
 
 // Add visibility change listener for immediate detection when tab is closed/backgrounded

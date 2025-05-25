@@ -1,0 +1,187 @@
+/* General styles */
+body {
+    width: 400px;
+    margin: 0;
+    padding: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.container {
+    max-width: 100%;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #ddd;
+}
+
+.tab-btn {
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+}
+
+.tab-btn.active {
+    color: #0052cc;
+    border-bottom: 2px solid #0052cc;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Settings */
+.settings-section {
+    margin-bottom: 24px;
+}
+
+.settings-section h3 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    color: #172B4D;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 14px;
+    color: #172B4D;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #4C9AFF;
+    box-shadow: 0 0 0 2px rgba(76, 154, 255, 0.2);
+}
+
+.help-text {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #6B778C;
+}
+
+/* Issue selector */
+.issue-selector {
+    position: relative;
+}
+
+.issue-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.issue-item {
+    padding: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.issue-item:hover {
+    background: #F4F5F7;
+}
+
+/* Buttons */
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 3px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-primary {
+    background-color: #0052CC;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0747A6;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+/* Meeting history */
+.meeting-history {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.meeting-item {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    margin-bottom: 8px;
+    background: white;
+}
+
+.meeting-item.current-meeting {
+    border-color: #4C9AFF;
+    background: #F4F5F7;
+}
+
+.meeting-name {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.meeting-time {
+    font-size: 12px;
+    color: #6B778C;
+    margin-bottom: 4px;
+}
+
+.meeting-duration {
+    font-size: 12px;
+    color: #6B778C;
+    margin-bottom: 8px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-muted {
+    color: #6B778C;
+}
+
+.text-info {
+    color: #0052CC;
+}
+
+.text-success {
+    color: #36B37E;
+} 
