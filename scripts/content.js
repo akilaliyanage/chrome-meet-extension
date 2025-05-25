@@ -8,6 +8,7 @@ let isInCall = false;
 let isCallEnded = false;
 let isInMeeting = false;
 let lastMeetingName = "";
+let lastCheckTime = Date.now();
 
 // Function to get meeting name
 function getMeetingName() {
@@ -43,6 +44,7 @@ function getMeetingName() {
 // Function to check meeting state
 function checkMeetingState() {
   console.log("Checking meeting state...");
+  const now = Date.now();
   
   // More aggressive meeting detection
   const hasMeetingControls = 
@@ -138,6 +140,10 @@ function checkMeetingState() {
         console.error("Error sending meeting started message:", chrome.runtime.lastError);
       } else {
         console.log("Meeting started message sent successfully:", response);
+        // Verify the message was received by checking storage
+        chrome.storage.local.get(['meetingConfig'], (result) => {
+          console.log("Current meeting config after sending start message:", result.meetingConfig);
+        });
       }
     });
   } else if (wasInCall && (isCallEnded || !isInCall)) {
@@ -147,9 +153,15 @@ function checkMeetingState() {
         console.error("Error sending meeting ended message:", chrome.runtime.lastError);
       } else {
         console.log("Meeting ended message sent successfully:", response);
+        // Verify the message was received by checking storage
+        chrome.storage.local.get(['meetingConfig'], (result) => {
+          console.log("Current meeting config after sending end message:", result.meetingConfig);
+        });
       }
     });
   }
+
+  lastCheckTime = now;
 }
 
 // Set up periodic check with more frequent checks initially
@@ -159,26 +171,51 @@ const checkInterval = setInterval(() => {
   checkCount++;
   if (checkCount >= 6) { // After 30 seconds, switch to normal interval
     clearInterval(checkInterval);
-    setInterval(checkMeetingState, 5000);
+    setInterval(checkMeetingState, 2000); // Check every 2 seconds instead of 5
   }
-}, 5000);
+}, 2000); // Start with 2-second intervals
 
 // Initial check
 checkMeetingState();
 
-// Set up observer for DOM changes
+// Set up observer for DOM changes with debouncing
+let observerTimeout;
 const observer = new MutationObserver((mutations) => {
-  for (const mutation of mutations) {
-    if (mutation.type === "childList" || mutation.type === "attributes") {
-      checkMeetingState();
-      break;
-    }
+  // Clear any existing timeout
+  if (observerTimeout) {
+    clearTimeout(observerTimeout);
   }
+  
+  // Set a new timeout to check meeting state
+  observerTimeout = setTimeout(() => {
+    const now = Date.now();
+    // Only check if it's been at least 500ms since last check
+    if (now - lastCheckTime >= 500) {
+      checkMeetingState();
+    }
+  }, 500);
 });
 
-// Start observing
+// Start observing with more aggressive settings
 observer.observe(document.body, {
   childList: true,
   subtree: true,
   attributes: true,
+  attributeFilter: ['aria-label', 'role', 'data-allocation-index', 'data-meeting-title', 'data-participant-id']
+});
+
+// Add visibility change listener for immediate detection when tab is closed/backgrounded
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && isInCall) {
+    console.log("Tab hidden while in call, ending meeting");
+    chrome.runtime.sendMessage({ type: "MEETING_ENDED" });
+  }
+});
+
+// Add beforeunload listener for immediate detection when page is closed
+window.addEventListener('beforeunload', () => {
+  if (isInCall) {
+    console.log("Page unloading while in call, ending meeting");
+    chrome.runtime.sendMessage({ type: "MEETING_ENDED" });
+  }
 });

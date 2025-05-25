@@ -7,112 +7,12 @@ let meetingConfig = {
 
 // Initialize meeting tracker
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("Meeting tracker initialized");
-
-  // Load saved meetings
-  chrome.storage.local.get(["meetingConfig"], (result) => {
-    console.log("Loaded meeting config:", result.meetingConfig);
-    if (result.meetingConfig) {
-      meetingConfig = result.meetingConfig;
-      // Ensure dates are properly parsed
-      if (meetingConfig.currentMeeting) {
-        meetingConfig.currentMeeting.startTime = new Date(meetingConfig.currentMeeting.startTime).toISOString();
-        if (meetingConfig.currentMeeting.endTime) {
-          meetingConfig.currentMeeting.endTime = new Date(meetingConfig.currentMeeting.endTime).toISOString();
-        }
-      }
-      meetingConfig.meetings = meetingConfig.meetings.map((meeting) => ({
-        ...meeting,
-        startTime: new Date(meeting.startTime).toISOString(),
-        endTime: meeting.endTime ? new Date(meeting.endTime).toISOString() : null,
-      }));
-      console.log("Parsed meeting config:", meetingConfig);
-      updateMeetingHistory();
-    } else {
-      console.log("No saved meeting config found, initializing new config");
-      meetingConfig = {
-        meetings: [],
-        isTracking: false,
-        currentMeeting: null,
-      };
-      saveMeetingConfig();
-    }
-  });
-
-  // Listen for messages from content script
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log("Received message from content script:", message);
-    console.log("Current meeting config before update:", meetingConfig);
-
-    try {
-      if (message.type === "MEETING_STARTED") {
-        console.log("Handling meeting started:", message.meetingName);
-        handleMeetingStarted(message.meetingName);
-        console.log("Meeting config after start:", meetingConfig);
-        sendResponse({ status: "success" });
-      } else if (message.type === "MEETING_ENDED") {
-        console.log("Handling meeting ended");
-        handleMeetingEnded();
-        console.log("Meeting config after end:", meetingConfig);
-        sendResponse({ status: "success" });
-      }
-    } catch (error) {
-      console.error("Error handling message:", error);
-      sendResponse({ status: "error", error: error.message });
-    }
-    return true; // Keep the message channel open for async response
-  });
-});
-
-// Handle meeting started
-function handleMeetingStarted(meetingName) {
-  console.log("Starting meeting:", meetingName);
-  const now = new Date();
-  meetingConfig.currentMeeting = {
-    name: meetingName,
-    startTime: now.toISOString(),
-    endTime: null,
-    duration: null,
-    logged: false,
-  };
-  meetingConfig.isTracking = true;
-  console.log("Updated meeting config:", meetingConfig);
-  saveMeetingConfig();
+  console.log("Meeting tracker UI initialized");
   updateMeetingHistory();
-}
 
-// Handle meeting ended
-function handleMeetingEnded() {
-  console.log("Ending meeting:", meetingConfig.currentMeeting);
-  if (meetingConfig.currentMeeting) {
-    const now = new Date();
-    const startTime = new Date(meetingConfig.currentMeeting.startTime);
-    const duration = Math.round((now - startTime) / 1000 / 60); // Duration in minutes
-
-    meetingConfig.currentMeeting.endTime = now.toISOString();
-    meetingConfig.currentMeeting.duration = duration;
-    meetingConfig.meetings.unshift(meetingConfig.currentMeeting);
-    meetingConfig.currentMeeting = null;
-    meetingConfig.isTracking = false;
-    console.log("Updated meeting config after ending:", meetingConfig);
-    saveMeetingConfig();
-    updateMeetingHistory();
-  } else {
-    console.log("No current meeting to end");
-  }
-}
-
-// Save meeting configuration
-function saveMeetingConfig() {
-  console.log("Saving meeting config:", meetingConfig);
-  chrome.storage.local.set({ meetingConfig }, () => {
-    if (chrome.runtime.lastError) {
-      console.error("Error saving meeting config:", chrome.runtime.lastError);
-    } else {
-      console.log("Meeting config saved successfully");
-    }
-  });
-}
+  // Set up periodic refresh
+  setInterval(updateMeetingHistory, 5000);
+});
 
 // Update meeting history UI
 function updateMeetingHistory() {
@@ -123,32 +23,41 @@ function updateMeetingHistory() {
     return;
   }
 
-  historyContainer.innerHTML = "";
-  console.log("Current meeting state:", {
-    isTracking: meetingConfig.isTracking,
-    currentMeeting: meetingConfig.currentMeeting,
-    pastMeetings: meetingConfig.meetings,
+  // Get current meeting config from storage
+  chrome.storage.local.get(["meetingConfig"], (result) => {
+    const meetingConfig = result.meetingConfig || {
+      meetings: [],
+      isTracking: false,
+      currentMeeting: null,
+    };
+
+    historyContainer.innerHTML = "";
+    console.log("Current meeting state:", {
+      isTracking: meetingConfig.isTracking,
+      currentMeeting: meetingConfig.currentMeeting,
+      pastMeetings: meetingConfig.meetings,
+    });
+
+    // Show current meeting if tracking
+    if (meetingConfig.isTracking && meetingConfig.currentMeeting) {
+      console.log("Adding current meeting to UI");
+      const currentMeetingElement = createMeetingElement(meetingConfig.currentMeeting, -1, true);
+      historyContainer.appendChild(currentMeetingElement);
+    }
+
+    // Show past meetings
+    meetingConfig.meetings.forEach((meeting, index) => {
+      console.log("Adding past meeting to UI:", meeting);
+      const meetingElement = createMeetingElement(meeting, index);
+      historyContainer.appendChild(meetingElement);
+    });
+
+    // Show message if no meetings
+    if (!meetingConfig.isTracking && meetingConfig.meetings.length === 0) {
+      console.log("No meetings to display");
+      historyContainer.innerHTML = '<div class="text-center text-muted">No meetings recorded yet</div>';
+    }
   });
-
-  // Show current meeting if tracking
-  if (meetingConfig.isTracking && meetingConfig.currentMeeting) {
-    console.log("Adding current meeting to UI");
-    const currentMeetingElement = createMeetingElement(meetingConfig.currentMeeting, -1, true);
-    historyContainer.appendChild(currentMeetingElement);
-  }
-
-  // Show past meetings
-  meetingConfig.meetings.forEach((meeting, index) => {
-    console.log("Adding past meeting to UI:", meeting);
-    const meetingElement = createMeetingElement(meeting, index);
-    historyContainer.appendChild(meetingElement);
-  });
-
-  // Show message if no meetings
-  if (!meetingConfig.isTracking && meetingConfig.meetings.length === 0) {
-    console.log("No meetings to display");
-    historyContainer.innerHTML = '<div class="text-center text-muted">No meetings recorded yet</div>';
-  }
 }
 
 // Create meeting element
@@ -197,40 +106,86 @@ function createMeetingElement(meeting, index, isCurrent = false) {
 
 // Log meeting time to Jira
 async function logMeetingTime(index) {
-  const meeting = meetingConfig.meetings[index];
-  if (!meeting || meeting.logged) return;
-
-  const startTime = new Date(meeting.startTime);
-  const endTime = new Date(meeting.endTime);
-  const comment = `${startTime.toLocaleString()} - ${endTime.toLocaleString()} - ${meeting.name}`;
-
-  try {
-    const response = await fetch(
-      `https://${jiraConfig.domain}.atlassian.net/rest/api/3/issue/${jiraConfig.defaultIssue.key}/worklog`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${btoa(`${jiraConfig.email}:${jiraConfig.apiToken}`)}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          timeSpent: `${meeting.duration}m`,
-          comment: comment,
-        }),
-      },
-    );
-
-    if (response.ok) {
-      meeting.logged = true;
-      saveMeetingConfig();
-      updateMeetingHistory();
-    } else {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to log time");
+  // First get the Jira configuration
+  chrome.storage.local.get(["jiraConfig", "meetingConfig"], async (result) => {
+    const jiraConfig = result.jiraConfig;
+    const meetingConfig = result.meetingConfig;
+    
+    // Validate Jira configuration
+    if (!jiraConfig || !jiraConfig.domain || !jiraConfig.email || !jiraConfig.apiToken) {
+      alert("Please configure your Jira settings first. Go to the Settings tab and set up your Jira connection.");
+      return;
     }
-  } catch (error) {
-    console.error("Error logging meeting time:", error);
-    alert(`Failed to log meeting time: ${error.message}`);
-  }
+
+    // Validate default issue
+    if (!jiraConfig.defaultIssue || !jiraConfig.defaultIssue.key) {
+      alert("Please select a default issue in the Settings tab before logging time.");
+      return;
+    }
+
+    const meeting = meetingConfig.meetings[index];
+    if (!meeting || meeting.logged) return;
+
+    const startTime = new Date(meeting.startTime);
+    const endTime = new Date(meeting.endTime);
+    const comment = `${startTime.toLocaleString()} - ${endTime.toLocaleString()} - ${meeting.name}`;
+
+    try {
+      // Format the date exactly as Jira expects: yyyy-MM-dd'T'HH:mm:ss.SSSZ
+      const formattedStartTime = startTime.toISOString().replace('Z', '+0000');
+      
+      console.log("Logging time to Jira:", {
+        domain: jiraConfig.domain,
+        issueKey: jiraConfig.defaultIssue.key,
+        duration: meeting.duration,
+        comment: comment,
+        started: formattedStartTime
+      });
+
+      const response = await fetch(
+        `https://${jiraConfig.domain}.atlassian.net/rest/api/3/issue/${jiraConfig.defaultIssue.key}/worklog`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${btoa(`${jiraConfig.email}:${jiraConfig.apiToken}`)}`,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            timeSpentSeconds: meeting.duration * 60, // Convert minutes to seconds
+            comment: {
+              type: "doc",
+              version: 1,
+              content: [
+                {
+                  type: "paragraph",
+                  content: [
+                    {
+                      type: "text",
+                      text: comment
+                    }
+                  ]
+                }
+              ]
+            },
+            started: formattedStartTime
+          }),
+        },
+      );
+
+      if (response.ok) {
+        meeting.logged = true;
+        chrome.storage.local.set({ meetingConfig }, () => {
+          updateMeetingHistory();
+        });
+      } else {
+        const errorData = await response.json();
+        console.error("Jira API error:", JSON.stringify(errorData));
+        throw new Error(errorData.message || "Failed to log time");
+      }
+    } catch (error) {
+      console.error("Error logging meeting time:", error);
+      alert(`Failed to log meeting time: ${error.message}`);
+    }
+  });
 }
