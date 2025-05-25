@@ -135,29 +135,15 @@ function checkMeetingState() {
   if (isInCall && !wasInCall) {
     const meetingName = getMeetingName();
     console.log("Meeting started:", meetingName);
-    chrome.runtime.sendMessage({ type: "MEETING_STARTED", meetingName }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.error("Error sending meeting started message:", chrome.runtime.lastError);
-      } else {
-        console.log("Meeting started message sent successfully:", response);
-        // Verify the message was received by checking storage
-        chrome.storage.local.get(['meetingConfig'], (result) => {
-          console.log("Current meeting config after sending start message:", result.meetingConfig);
-        });
-      }
+    chrome.runtime.sendMessage({ type: "MEETING_STARTED", meetingName }, () => {
+      // Set a flag in storage to indicate a meeting is in progress
+      chrome.storage.local.set({ meetingInProgress: true });
     });
   } else if (wasInCall && (isCallEnded || !isInCall)) {
     console.log("Meeting ended");
-    chrome.runtime.sendMessage({ type: "MEETING_ENDED" }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.error("Error sending meeting ended message:", chrome.runtime.lastError);
-      } else {
-        console.log("Meeting ended message sent successfully:", response);
-        // Verify the message was received by checking storage
-        chrome.storage.local.get(['meetingConfig'], (result) => {
-          console.log("Current meeting config after sending end message:", result.meetingConfig);
-        });
-      }
+    chrome.runtime.sendMessage({ type: "MEETING_ENDED" }, () => {
+      // Clear the flag in storage
+      chrome.storage.local.remove('meetingInProgress');
     });
   }
 
@@ -208,17 +194,20 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Add visibility change listener for immediate detection when tab is closed/backgrounded
+// Always send MEETING_ENDED if in call
+// Use sync storage update to maximize reliability
+function sendMeetingEndedIfNeeded() {
+  if (isInCall) {
+    chrome.runtime.sendMessage({ type: "MEETING_ENDED" }, () => {
+      chrome.storage.local.remove('meetingInProgress');
+    });
+  }
+}
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden' && isInCall) {
-    console.log("Tab hidden while in call, ending meeting");
-    chrome.runtime.sendMessage({ type: "MEETING_ENDED" });
+  if (document.visibilityState === 'hidden') {
+    sendMeetingEndedIfNeeded();
   }
 });
-
-// Add beforeunload listener for immediate detection when page is closed
 window.addEventListener('beforeunload', () => {
-  if (isInCall) {
-    console.log("Page unloading while in call, ending meeting");
-    chrome.runtime.sendMessage({ type: "MEETING_ENDED" });
-  }
+  sendMeetingEndedIfNeeded();
 });

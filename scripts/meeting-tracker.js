@@ -337,3 +337,10 @@ function loadClockifyProjects(apiKey, workspaceId, selectedProjectId) {
       alert('Could not load projects: ' + err.message);
     });
 }
+
+// Instantly update meeting history UI when meetingConfig changes
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.meetingConfig) {
+    updateMeetingHistory();
+  }
+});
