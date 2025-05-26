@@ -203,11 +203,6 @@ function sendMeetingEndedIfNeeded() {
     });
   }
 }
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    sendMeetingEndedIfNeeded();
-  }
-});
 window.addEventListener('beforeunload', () => {
   sendMeetingEndedIfNeeded();
 });

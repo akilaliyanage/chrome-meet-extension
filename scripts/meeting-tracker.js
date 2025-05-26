@@ -52,6 +52,28 @@ function updateMeetingHistory() {
   });
 }
 
+// Format duration in a human-readable way
+function formatDuration(start, end, durationMinutes) {
+  if (start && end) {
+    const seconds = Math.round((end - start) / 1000);
+    if (seconds < 60) {
+      return `${seconds} seconds`;
+    } else if (seconds < 3600) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins} minute${mins !== 1 ? 's' : ''}${secs > 0 ? ` ${secs} seconds` : ''}`;
+    } else {
+      const hours = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      return `${hours} hour${hours !== 1 ? 's' : ''}${mins > 0 ? ` ${mins} minutes` : ''}`;
+    }
+  } else if (typeof durationMinutes === 'number' && !isNaN(durationMinutes)) {
+    return `${durationMinutes} minutes`;
+  } else {
+    return "In progress...";
+  }
+}
+
 // Create meeting element
 function createMeetingElement(meeting, index, isCurrent = false) {
   const div = document.createElement("div");
@@ -62,14 +84,18 @@ function createMeetingElement(meeting, index, isCurrent = false) {
 
   const startTime = new Date(meeting.startTime);
   const endTime = meeting.endTime ? new Date(meeting.endTime) : null;
-  const duration = meeting.duration || "In progress...";
+  const duration = (endTime && startTime)
+    ? formatDuration(startTime, endTime, meeting.duration)
+    : (typeof meeting.duration === 'number' && !isNaN(meeting.duration))
+      ? `${meeting.duration} minutes`
+      : "In progress...";
 
   div.innerHTML = `
         <div class="meeting-name">${meeting.name}</div>
         <div class="meeting-time">
             ${startTime.toLocaleString()} - ${endTime ? endTime.toLocaleString() : "Ongoing"}
         </div>
-        <div class="meeting-duration">Duration: ${duration} minutes</div>
+        <div class="meeting-duration">Duration: ${duration}</div>
         ${
           !meeting.logged && !isCurrent
             ? `
