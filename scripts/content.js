@@ -16,8 +16,8 @@ function getMeetingName() {
   // Try different selectors for meeting name
   const selectors = [
     '[data-allocation-index="0"]', // Main meeting name
-    '[data-meeting-title]', // Alternative meeting title
-    '[data-self-name]', // Self name (fallback)
+    "[data-meeting-title]", // Alternative meeting title
+    "[data-self-name]", // Self name (fallback)
     'div[role="heading"]', // Generic heading
     'div[aria-label*="meeting"]', // Aria label with meeting
     'div[aria-label*="call"]', // Aria label with call
@@ -45,28 +45,28 @@ function getMeetingName() {
 function checkMeetingState() {
   console.log("Checking meeting state...");
   const now = Date.now();
-  
+
   // More aggressive meeting detection
-  const hasMeetingControls = 
+  const hasMeetingControls =
     document.querySelector('[role="toolbar"]') !== null ||
-    document.querySelector('[data-allocation-index]') !== null ||
-    document.querySelector('[data-participant-id]') !== null ||
+    document.querySelector("[data-allocation-index]") !== null ||
+    document.querySelector("[data-participant-id]") !== null ||
     document.querySelector('[role="button"][aria-label*="Leave call"]') !== null ||
     document.querySelector('[role="button"][aria-label*="End call"]') !== null;
-    
-  const hasParticipantList = 
+
+  const hasParticipantList =
     document.querySelector('[role="list"]') !== null ||
-    document.querySelector('[data-participant-id]') !== null ||
+    document.querySelector("[data-participant-id]") !== null ||
     document.querySelector('[role="listbox"]') !== null;
-    
-  const hasCallButton = 
+
+  const hasCallButton =
     document.querySelector('[aria-label*="Leave call"]') !== null ||
     document.querySelector('[aria-label*="End call"]') !== null ||
     document.querySelector('[role="button"][aria-label*="Leave call"]') !== null ||
     document.querySelector('[role="button"][aria-label*="End call"]') !== null;
-    
+
   // More comprehensive call ended detection
-  const hasEndedCallButton = 
+  const hasEndedCallButton =
     document.querySelector('[aria-label*="Rejoin"]') !== null ||
     document.querySelector('[aria-label*="Join now"]') !== null ||
     document.querySelector('[role="button"][aria-label*="Rejoin"]') !== null ||
@@ -81,29 +81,29 @@ function checkMeetingState() {
     (window.location.href === "https://meet.google.com" && isInMeeting) ||
     // Check if we're on a different page
     (!window.location.href.includes("meet.google.com") && isInMeeting);
-    
-  const hasMeetingInfo = 
+
+  const hasMeetingInfo =
     document.querySelector('[data-allocation-index="0"]') !== null ||
-    document.querySelector('[data-meeting-title]') !== null ||
+    document.querySelector("[data-meeting-title]") !== null ||
     document.querySelector('div[role="heading"]') !== null ||
     document.querySelector('div[aria-label*="meeting"]') !== null;
 
   // Log all found elements for debugging
   console.log("Found elements:", {
     toolbar: document.querySelector('[role="toolbar"]'),
-    allocationIndex: document.querySelector('[data-allocation-index]'),
-    participantId: document.querySelector('[data-participant-id]'),
+    allocationIndex: document.querySelector("[data-allocation-index]"),
+    participantId: document.querySelector("[data-participant-id]"),
     leaveCall: document.querySelector('[aria-label*="Leave call"]'),
     endCall: document.querySelector('[aria-label*="End call"]'),
     rejoin: document.querySelector('[aria-label*="Rejoin"]'),
     joinNow: document.querySelector('[aria-label*="Join now"]'),
-    meetingTitle: document.querySelector('[data-meeting-title]'),
+    meetingTitle: document.querySelector("[data-meeting-title]"),
     heading: document.querySelector('div[role="heading"]'),
     meetingLabel: document.querySelector('div[aria-label*="meeting"]'),
     callEndedDialog: document.querySelector('[data-is-call-ended-dialog="true"]'),
     meetingEnded: document.querySelector('[data-meeting-ended="true"]'),
     meetingLeft: document.querySelector('[data-meeting-left="true"]'),
-    callEnded: document.querySelector('[data-call-ended="true"]')
+    callEnded: document.querySelector('[data-call-ended="true"]'),
   });
 
   console.log("Meeting state indicators:", {
@@ -113,13 +113,14 @@ function checkMeetingState() {
     hasEndedCallButton,
     hasMeetingInfo,
     url: window.location.href,
-    isInMeeting
+    isInMeeting,
   });
 
   // Check if we're in a meeting - more lenient conditions
   const wasInCall = isInCall;
-  isInCall = (hasMeetingControls || hasParticipantList || hasCallButton) && 
-             (window.location.href.includes("/meet/") || hasCallButton);
+  isInCall =
+    (hasMeetingControls || hasParticipantList || hasCallButton) &&
+    (window.location.href.includes("/meet/") || hasCallButton);
   isCallEnded = hasEndedCallButton;
   isInMeeting = hasMeetingInfo || window.location.href.includes("/meet/");
 
@@ -128,36 +129,22 @@ function checkMeetingState() {
     isInCall,
     isCallEnded,
     isInMeeting,
-    url: window.location.href
+    url: window.location.href,
   });
 
   // Get meeting name if we're in a meeting
   if (isInCall && !wasInCall) {
     const meetingName = getMeetingName();
     console.log("Meeting started:", meetingName);
-    chrome.runtime.sendMessage({ type: "MEETING_STARTED", meetingName }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.error("Error sending meeting started message:", chrome.runtime.lastError);
-      } else {
-        console.log("Meeting started message sent successfully:", response);
-        // Verify the message was received by checking storage
-        chrome.storage.local.get(['meetingConfig'], (result) => {
-          console.log("Current meeting config after sending start message:", result.meetingConfig);
-        });
-      }
+    chrome.runtime.sendMessage({ type: "MEETING_STARTED", meetingName }, () => {
+      // Set a flag in storage to indicate a meeting is in progress
+      chrome.storage.local.set({ meetingInProgress: true });
     });
   } else if (wasInCall && (isCallEnded || !isInCall)) {
     console.log("Meeting ended");
-    chrome.runtime.sendMessage({ type: "MEETING_ENDED" }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.error("Error sending meeting ended message:", chrome.runtime.lastError);
-      } else {
-        console.log("Meeting ended message sent successfully:", response);
-        // Verify the message was received by checking storage
-        chrome.storage.local.get(['meetingConfig'], (result) => {
-          console.log("Current meeting config after sending end message:", result.meetingConfig);
-        });
-      }
+    chrome.runtime.sendMessage({ type: "MEETING_ENDED" }, () => {
+      // Clear the flag in storage
+      chrome.storage.local.remove("meetingInProgress");
     });
   }
 
@@ -169,7 +156,8 @@ let checkCount = 0;
 const checkInterval = setInterval(() => {
   checkMeetingState();
   checkCount++;
-  if (checkCount >= 6) { // After 30 seconds, switch to normal interval
+  if (checkCount >= 6) {
+    // After 30 seconds, switch to normal interval
     clearInterval(checkInterval);
     setInterval(checkMeetingState, 2000); // Check every 2 seconds instead of 5
   }
@@ -185,7 +173,7 @@ const observer = new MutationObserver((mutations) => {
   if (observerTimeout) {
     clearTimeout(observerTimeout);
   }
-  
+
   // Set a new timeout to check meeting state
   observerTimeout = setTimeout(() => {
     const now = Date.now();
@@ -197,28 +185,45 @@ const observer = new MutationObserver((mutations) => {
 });
 
 // Wait for document to be ready before starting observation
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   // Start observing with more aggressive settings
   observer.observe(document.body, {
     childList: true,
     subtree: true,
     attributes: true,
-    attributeFilter: ['aria-label', 'role', 'data-allocation-index', 'data-meeting-title', 'data-participant-id']
+    attributeFilter: ["aria-label", "role", "data-allocation-index", "data-meeting-title", "data-participant-id"],
   });
 });
 
 // Add visibility change listener for immediate detection when tab is closed/backgrounded
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden' && isInCall) {
-    console.log("Tab hidden while in call, ending meeting");
-    chrome.runtime.sendMessage({ type: "MEETING_ENDED" });
+// Always send MEETING_ENDED if in call
+// Use sync storage update to maximize reliability
+function sendMeetingEndedIfNeeded() {
+  if (isInCall) {
+    chrome.runtime.sendMessage({ type: "MEETING_ENDED" }, () => {
+      chrome.storage.local.remove("meetingInProgress");
+    });
   }
+}
+window.addEventListener("beforeunload", () => {
+  sendMeetingEndedIfNeeded();
 });
 
-// Add beforeunload listener for immediate detection when page is closed
-window.addEventListener('beforeunload', () => {
-  if (isInCall) {
-    console.log("Page unloading while in call, ending meeting");
-    chrome.runtime.sendMessage({ type: "MEETING_ENDED" });
+// Restore a smarter visibilitychange handler:
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    setTimeout(() => {
+      // If the URL is not a meet call or meeting controls are gone, end the meeting
+      const stillOnMeet = window.location.href.includes("/meet/");
+      const hasMeetingControls =
+        document.querySelector('[role="toolbar"]') !== null ||
+        document.querySelector("[data-allocation-index]") !== null ||
+        document.querySelector("[data-participant-id]") !== null ||
+        document.querySelector('[role="button"][aria-label*="Leave call"]') !== null ||
+        document.querySelector('[role="button"][aria-label*="End call"]') !== null;
+      if (!stillOnMeet || !hasMeetingControls) {
+        sendMeetingEndedIfNeeded();
+      }
+    }, 300); // 300ms delay to let DOM update
   }
 });
